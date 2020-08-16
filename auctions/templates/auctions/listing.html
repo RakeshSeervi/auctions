@@ -1,0 +1,128 @@
+{% extends "auctions/layout.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}
+    Listing - {{ listing.title }}
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="row" style="margin-bottom: 24px;">
+            <div class="col-10">
+                <h1>{{ listing.title }}
+                    {% if listing.active %}
+                        <span class="badge badge-success">Active</span>
+                    {% else %}
+                        <span class="badge badge-danger">Inactive</span>
+                    {% endif %}
+                </h1>
+                <small>{{ listing.timestamp|naturaltime }}</small>
+            </div>
+            <div class="col-2" style="float:right; display:flex; align-items:center;">
+                {% if request.user.is_authenticated %}
+                    {% if listing.active %}
+                        {% if listing.creator.username != request.user.username %}
+                            {% if request.user not in listing.watchers.all %}
+                                <form action="{% url 'addToList' listing.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="button" onclick="submit()" class="btn btn-success">Add to watchlist</button>
+                                </form>
+                            {% else %}
+                                <form action="{% url 'removeFromList' listing.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="button" onclick="submit()" class="btn btn-danger btn-sm">Remove from watchlist</button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <form action="{% url 'close' listing.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="button" onclick="submit()" class="btn btn-danger">Close bid</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-6">
+                {% if listing.imageURL %}
+                    <img src="{{ listing.imageURL }}" width="250px" height="250px" alt="...">
+                {% else %}
+                    <img src="{% static 'auctions/index.png' %}" width="250px" height="250px">
+                {% endif %}
+
+                <p style="margin-top:16px; margin-bottom:16px;">{{ listing.description }}</p>
+
+                <p>
+                    <b>Base price:</b> INR {{ listing.basePrice }}
+                </p>
+
+                {% if listing.bids.count %}
+                    {% with bid=listing.bids.last %}
+                        <p>
+                            <b>Last bid value:</b> INR {{ bid.bidValue }} <small>{{ bid.timestamp|naturaltime }}</small>
+                        </p>
+                    {% endwith %}
+                {% else %}
+                    <p>No bids placed yet!</p>
+                {% endif %}
+
+                {% if request.user.is_authenticated %}
+                    {% if listing.active %}
+                        {% if listing.creator.username != request.user.username %}
+                            <form action="{% url 'placeBid' listing.id %}" method="post">
+                                {% csrf_token %}
+                                {{ bidForm.bidValue }}
+                                <button type="button" class="btn btn-success" onclick="submit()">Place bid!</button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        {% if request.user == listing.winner %}
+                            <p class="alert alert-success" role="alert">
+                                You have won the bid!
+                            </p>
+                        {% elif request.user == listing.creator %}
+                            <p>You have closed the bid. {% if listing.winner %}<span class="badge badge-success">{{listing.winner.username}}</span> won the bid!</p>{% endif %}
+                        {% else %}
+                            <p class="alert alert-danger" role="alert">
+                                The bid is inactive!
+                            </p>
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    Login to bid!
+                {% endif %}
+            </div>
+            <div class="col-6">
+                <h3>Comments</h3>
+                <div id="comment" style="height:250px; overflow-y:auto; box-shadow: 0 0 4px white; padding:8px; margin-bottom:16px; margin-top:16px;">
+                {% if comments.count %}
+                    {% for comment in comments %}
+                        <hr>
+                        <b>{{ comment.author.username }}</b> <small>said {{ comment.timestamp|naturaltime }}</small>
+                        <p>{{ comment.body }}</p>
+                    {% endfor %}
+                {% else %}
+                    <div style="display:flex; justify-content:center;">
+                        <span>No comments to show!</span>
+                    </div>
+                {% endif %}
+                </div>
+
+                {% if listing.active and request.user.is_authenticated %}
+                    <div>
+                        <form action="{% url 'comment' listing.id %}" method="post">
+                            {% csrf_token %}
+                            {{ commentForm.body }}
+                            <p>
+                                <input type="submit" value="Submit">
+                            </p>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

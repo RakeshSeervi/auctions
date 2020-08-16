@@ -1,0 +1,41 @@
+{% extends "auctions/layout.html" %}
+{% load static %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block body %}
+    <div style="margin-bottom:16px">
+        <form action="" style="float:right;">
+            <div class="select" tabindex="1">
+                {% if request.GET.category %}
+                    <input class="selectopt" name="category" type="radio" id="default" checked>
+                    <label for="default" class="option">{{ request.GET.category|capfirst }}</label>
+                    <input class="selectopt" name="category" type="radio" id="opt" value="" onclick="submit()">
+                    <label for="opt" class="option">All</label>
+                {% else %}
+                    <input class="selectopt" name="category" type="radio" id="opt1" value="" onclick="submit()" checked>
+                    <label for="opt1" class="option">All</label>
+                {% endif %}
+                <input class="selectopt" name="category" type="radio" id="opt2" value="electronics" onclick="submit()">
+                <label for="opt2" class="option">Electronics</label>
+                <input class="selectopt" name="category" type="radio" id="opt3" value="furniture" onclick="submit()">
+                <label for="opt3" class="option">Furniture</label>
+                <input class="selectopt" name="category" type="radio" id="opt4" value="vehicle" onclick="submit()">
+                <label for="opt4" class="option">Vehicle</label>
+                <input class="selectopt" name="category" type="radio" id="opt5" value="fashion" onclick="submit()">
+                <label for="opt5" class="option">Fashion</label>
+                <input class="selectopt" name="category" type="radio" id="opt6" value="other" onclick="submit()">
+                <label for="opt6" class="option">Other</label>
+            </div>
+        </form>
+        <h2>{{ heading }}</h2>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-4 justify-content-center">
+        {% for listing in listings %}
+            {% include 'auctions/_listingCard.html' %}
+        {% endfor %}
+    </div>
+{% endblock %}

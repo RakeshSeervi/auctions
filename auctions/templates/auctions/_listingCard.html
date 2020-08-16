@@ -1,0 +1,33 @@
+{% load static %}
+{% load humanize %}
+
+<div class="col mb-4" style="width:200px;">
+<div class="card h-100">
+    <div class="card-header">
+        {{listing.title}}<br>
+        <small> created {{ listing.timestamp|naturaltime }}</small>
+    </div>
+
+    {% if listing.imageURL %}
+        <img src="{{ listing.imageURL }}" width="200px" height="200px" class="card-img-top" alt="...">
+    {% else %}
+        <img src="{% static 'auctions/index.png' %}" width="200px" height="200px" class="card-img-top">
+    {% endif %}
+    <div class="card-body" style="border-top:1px solid #343a40;">
+        <p class="card-text">{{ listing.description }}</p>
+        <div>
+            <b>Base price:</b> INR {{ listing.basePrice }}
+        </div>
+        <div>
+            {% if listing.bids.count %}
+                {% with bid=listing.bids.last %}
+                    <b>Last bid:</b> INR {{ bid.bidValue }} <small class="text-muted">{{ bid.timestamp|naturalday }}</small>
+                {% endwith %}
+            {% else %}
+                No bids placed yet!
+            {% endif %}
+        </div>
+    </div>
+    <a class="card-footer" href="{% url 'listing' listing.id %}">View details</a>
+</div>
+</div>
