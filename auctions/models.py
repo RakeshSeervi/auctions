@@ -6,8 +6,7 @@ class User(AbstractUser):
     pass
 
     def __str__(self):
-        return f"{User.username}"
-
+        return f"{self.username}"
 
 class Listing(models.Model):
     title = models.CharField(max_length=64)
