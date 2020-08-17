@@ -10,7 +10,7 @@ from .forms import NewListing, EmptyForm, BidForm, CommentForm
 
 
 def index(request):
-    listings = Listing.objects.filter(active=True)
+    listings = Listing.objects.filter(active=True).order_by("timestamp").reverse()
     category = request.GET.get('category')
     if category:
         listings = listings.filter(category=category)
@@ -198,7 +198,7 @@ def comment(request, id):
 
 @login_required
 def watchlist(request):
-    listings = request.user.watchlist
+    listings = request.user.watchlist.order_by("timestamp").reverse()
     category = request.GET.get('category')
 
     if category:
@@ -214,7 +214,7 @@ def watchlist(request):
 def myListings(request, username):
     if username == request.user.username:
         user = User.objects.get(username=username)
-        listings = Listing.objects.filter(creator=user)
+        listings = Listing.objects.filter(creator=user).order_by("timestamp").reverse()
 
         category = request.GET.get('category')
 
