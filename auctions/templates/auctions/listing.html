@@ -97,7 +97,7 @@
             </div>
             <div class="col-6">
                 <h3>Comments</h3>
-                <div id="comment" style="height:250px; overflow-y:auto; box-shadow: 0 0 4px white; padding:8px; margin-bottom:16px; margin-top:16px;">
+                <div id="comment" style="height:40vh; overflow-y:auto; box-shadow: 0 0 4px white; padding:8px; margin-bottom:16px; margin-top:16px;">
                 {% if comments.count %}
                     {% for comment in comments %}
                         <hr>
@@ -125,4 +125,8 @@
             </div>
         </div>
     </div>
+    <script>
+        objDiv = document.getElementById("comment");
+        objDiv.scrollTop = objDiv.scrollHeight;
+    </script>
 {% endblock %}
