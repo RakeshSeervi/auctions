@@ -113,7 +113,7 @@ def listing(request, id):
             "listing": listing,
             "bidForm": bidForm,
             'commentForm': commentForm,
-            'comments': comments
+            'comments': comments,
         })
     else:
         return render(request, "auctions/error.html", {
@@ -152,17 +152,28 @@ def removeFromList(request, id):
 @login_required
 def placeBid(request, id):
     listing = Listing.objects.get(id=id)
-
+    message = "Bid placed succesfully!"
+    
     if request.method == 'POST':
         if listing and listing.active:
             form = BidForm(request.POST)
             if form.is_valid():
-                # check for value
                 form = form.save(commit=False)
                 form.bidObject = listing
                 form.bidder = request.user
-                form.save()
-
+                lastBid = listing.bids.last()
+                
+                if lastBid:
+                    if form.bidValue>lastBid.bidValue:
+                        form.save()
+                    else:
+                        message = "Bid not placed. Bid value must be greater than the last bid value - "+str(lastBid.bidValue)+"."
+                else:
+                    if form.bidValue>listing.basePrice:
+                        form.save()
+                    else:
+                        message = "Bid not placed. Bid value must be greater than the base price - "+str(listing.basePrice)+"."
+    print(message)
     return HttpResponseRedirect(reverse('listing', args=[listing.id]))
 
 
@@ -211,6 +222,7 @@ def watchlist(request):
     })
 
 
+@login_required
 def myListings(request, username):
     if username == request.user.username:
         user = User.objects.get(username=username)

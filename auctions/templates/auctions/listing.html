@@ -17,7 +17,7 @@
                         <span class="badge badge-danger">Inactive</span>
                     {% endif %}
                 </h1>
-                <small>{{ listing.timestamp|naturaltime }}</small>
+                <small>listed by <span class="badge badge-success">{{ listing.creator }}</span> {{ listing.timestamp|naturaltime }}</small>
             </div>
             <div class="col-2" style="float:right; display:flex; align-items:center;">
                 {% if request.user.is_authenticated %}
@@ -74,8 +74,11 @@
                         {% if listing.creator.username != request.user.username %}
                             <form action="{% url 'placeBid' listing.id %}" method="post">
                                 {% csrf_token %}
-                                {{ bidForm.bidValue }}
-                                <button type="button" class="btn btn-success" onclick="submit()">Place bid!</button>
+                                <div class="form-group row">
+                                    {{ bidForm.bidValue }}
+                                    <label for="id_bidValue" class="col-form-label">&nbsp</label>
+                                    <input type="submit" class="btn btn-success" value="Place bid!">
+                                </div>
                             </form>
                         {% endif %}
                     {% else %}
