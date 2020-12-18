@@ -23,7 +23,7 @@
                 {% if request.user.is_authenticated %}
                     {% if listing.active %}
                         {% if listing.creator.username != request.user.username %}
-                            {% if request.user not in listing.watchers.all %}
+                            {% if listing not in watchlist %}
                                 <form action="{% url 'addToList' listing.id %}" method="post">
                                     {% csrf_token %}
                                     <button type="button" onclick="submit()" class="btn btn-success">Add to watchlist</button>

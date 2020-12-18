@@ -8,6 +8,7 @@ class User(AbstractUser):
     def __str__(self):
         return f"{self.username}"
 
+
 class Listing(models.Model):
     title = models.CharField(max_length=64)
     description = models.TextField(max_length=256)
@@ -19,7 +20,7 @@ class Listing(models.Model):
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings")
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-    watchers = models.ManyToManyField(User, related_name="watchlist", blank=True)
+    # watchers = models.ManyToManyField(User, related_name="watchlist", blank=True)
     winner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
@@ -44,3 +45,11 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.author} comments on {self.object}"
+
+
+class Watcher(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watchlist')
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.user} is watching {self.listing}'

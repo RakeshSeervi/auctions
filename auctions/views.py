@@ -1,12 +1,12 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
 
-from .models import User, Listing
 from .forms import NewListing, EmptyForm, BidForm, CommentForm
+from .models import User, Listing, Watcher
 
 
 def index(request):
@@ -114,6 +114,7 @@ def listing(request, id):
             "bidForm": bidForm,
             'commentForm': commentForm,
             'comments': comments,
+            'watchlist': [temp.listing for temp in request.user.watchlist.all()]
         })
     else:
         return render(request, "auctions/error.html", {
@@ -128,9 +129,9 @@ def addToList(request, id):
     if request.method == 'POST':
         form = EmptyForm(request.POST)
         if form.is_valid():
-            if listing and listing.active and listing not in request.user.watchlist.all():
-                request.user.watchlist.add(listing)
-                request.user.save()
+            if listing and listing.active:
+                watcher = Watcher(user=request.user, listing=listing)
+                watcher.save()
 
     return HttpResponseRedirect(reverse('listing', args=[listing.id]))
 
@@ -141,10 +142,10 @@ def removeFromList(request, id):
 
     if request.method == 'POST':
         form = EmptyForm(request.POST)
-        if form.is_valid():
-            if listing and listing in request.user.watchlist.all():
-                request.user.watchlist.remove(listing)
-                request.user.save()
+        if form.is_valid() and listing:
+            watcher = request.user.watchlist.filter(listing=listing.id)
+            if watcher:
+                watcher.delete()
 
     return HttpResponseRedirect(reverse('listing', args=[listing.id]))
 
@@ -209,16 +210,17 @@ def comment(request, id):
 
 @login_required
 def watchlist(request):
-    listings = request.user.watchlist.order_by("timestamp").reverse()
+    watchlist = request.user.watchlist.all()
+    listings = [temp.listing for temp in watchlist]
     category = request.GET.get('category')
 
     if category:
-        listings = listings.filter(category=category)
+        listings = [listing for listing in listings if listing.category == category]
 
     return render(request, 'auctions/index.html', {
         'title': 'watchlist',
         'heading': 'My watchlist',
-        'listings': listings.all()
+        'listings': listings
     })
 
 
