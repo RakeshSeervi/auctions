@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
 
+from .utils import callStoredProcedure
 from .forms import NewListing, EmptyForm, BidForm, CommentForm
 from .models import User, Listing, Watcher
 
@@ -13,13 +14,7 @@ from .models import User, Listing, Watcher
 def index(request):
     category = request.GET.get('category')
 
-    with connection.cursor() as cursor:
-        cursor.callproc('getAllActiveListings')
-        columns = [col[0] for col in cursor.description]
-        listings = [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
+    listings = callStoredProcedure("getAllActiveListings")
 
     if category:
         listings = [listing for listing in listings if listing.get('category') == category]
