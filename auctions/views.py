@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
+from django.db import connection
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -10,10 +11,18 @@ from .models import User, Listing, Watcher
 
 
 def index(request):
-    listings = Listing.objects.filter(active=True).order_by("timestamp").reverse()
     category = request.GET.get('category')
+
+    with connection.cursor() as cursor:
+        cursor.callproc('getAllActiveListings')
+        columns = [col[0] for col in cursor.description]
+        listings = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
     if category:
-        listings = listings.filter(category=category)
+        listings = [listing for listing in listings if listing.get('category') == category]
 
     return render(request, "auctions/index.html", {
         'title': 'home',
@@ -109,12 +118,14 @@ def listing(request, id):
             bidForm.fields['bidValue'].widget.attrs["min"] = listing.basePrice + 1
             bidForm.fields['bidValue'].widget.attrs["value"] = listing.basePrice + 1
 
+        watchlist = [temp.listing for temp in request.user.watchlist.all()] if request.user.is_authenticated else []
+
         return render(request, 'auctions/listing.html', {
             "listing": listing,
             "bidForm": bidForm,
             'commentForm': commentForm,
             'comments': comments,
-            'watchlist': [temp.listing for temp in request.user.watchlist.all()]
+            'watchlist': watchlist
         })
     else:
         return render(request, "auctions/error.html", {
@@ -154,7 +165,7 @@ def removeFromList(request, id):
 def placeBid(request, id):
     listing = Listing.objects.get(id=id)
     message = "Bid placed succesfully!"
-    
+
     if request.method == 'POST':
         if listing and listing.active:
             form = BidForm(request.POST)
@@ -163,17 +174,19 @@ def placeBid(request, id):
                 form.bidObject = listing
                 form.bidder = request.user
                 lastBid = listing.bids.last()
-                
+
                 if lastBid:
-                    if form.bidValue>lastBid.bidValue:
+                    if form.bidValue > lastBid.bidValue:
                         form.save()
                     else:
-                        message = "Bid not placed. Bid value must be greater than the last bid value - "+str(lastBid.bidValue)+"."
+                        message = "Bid not placed. Bid value must be greater than the last bid value - " + str(
+                            lastBid.bidValue) + "."
                 else:
-                    if form.bidValue>listing.basePrice:
+                    if form.bidValue > listing.basePrice:
                         form.save()
                     else:
-                        message = "Bid not placed. Bid value must be greater than the base price - "+str(listing.basePrice)+"."
+                        message = "Bid not placed. Bid value must be greater than the base price - " + str(
+                            listing.basePrice) + "."
     print(message)
     return HttpResponseRedirect(reverse('listing', args=[listing.id]))
 
