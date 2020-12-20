@@ -5,6 +5,7 @@ from django.db import connection
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
+import datetime
 
 from .utils import callStoredProcedure
 from .forms import NewListing, EmptyForm, BidForm, CommentForm
@@ -90,10 +91,12 @@ def create(request):
         if listing.is_valid():
             listing = listing.save(commit=False)
             listing.creator = request.user
-            listing.save()
-            return HttpResponseRedirect(reverse('listing', args=[listing.id]))
+            listing.timestamp =  datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            args = [listing.title , listing.description, listing.imageURL , listing.creator_id , listing.basePrice , listing.category ,  listing.timestamp , listing.active , ]
+            listing = callStoredProcedure("createListing" , *args)[0]
+            return HttpResponseRedirect(reverse('listing', args=[listing['id']]))
     return render(request, 'auctions/new.html', {
-        "form": listing
+        "form": listing 
     })
 
 

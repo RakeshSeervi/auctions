@@ -4,7 +4,7 @@
 ### Python function to call stored procedures
 This is a generic function used to call the stored procedure . It accepts a parameter which has the stored procedure name .  
 
-    def callStoredProcedure(procedure):
+    def callStoredProcedure(procedure getOne = False):
         with connection.cursor() as cursor:
             cursor.callproc(procedure)
             columns = [col[0] for col in cursor.description]
@@ -23,3 +23,23 @@ This is a generic function used to call the stored procedure . It accepts a para
     -> order by timestamp
     -> desc; end //
     
+
+
+## 3. To Create listing 
+    delimiter //
+    create procedure createListing(
+    -> IN Title VARCHAR(64)  ,
+    -> IN Description  LONGTEXT ,       
+    -> IN ImageURL     VARCHAR(200) ,
+    -> IN Creator_id   INT ,   
+    -> IN BasePrice    INT ,
+    -> IN Category     VARCHAR(11) ,  
+    -> IN Timestamp    DATETIME ,   
+    -> IN Active       INT,      
+    -> )
+    -> begin
+    -> insert into auctions_listing 
+    -> values (default , Title , Description , ImageURL , Creator_id , BasePrice , Category , Timestamp , Active , NULL);
+    -> select * from auctions_listing 
+    -> order by id desc limit 1;
+    -> end //
