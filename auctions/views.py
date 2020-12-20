@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 
 from .forms import NewListing, EmptyForm, BidForm, CommentForm
-from .models import User, Listing, Watcher
+from .models import User, Listing
 from .utils import callStoredProcedure, getDateTime
 
 
@@ -131,30 +131,25 @@ def listing(request, id):
 
 @login_required
 def addToList(request, id):
-    listing = Listing.objects.get(id=id)
+    listing = callStoredProcedure('getListingById', id)[0]
 
     if request.method == 'POST':
         form = EmptyForm(request.POST)
         if form.is_valid():
-            if listing and listing.active:
-                watcher = Watcher(user=request.user, listing=listing)
-                watcher.save()
+            if listing and listing.get('active'):
+                callStoredProcedure('addWatcher', id, request.user.id)
 
-    return HttpResponseRedirect(reverse('listing', args=[listing.id]))
+    return HttpResponseRedirect(reverse('listing', args=[id]))
 
 
 @login_required
 def removeFromList(request, id):
-    listing = Listing.objects.get(id=id)
-
     if request.method == 'POST':
         form = EmptyForm(request.POST)
         if form.is_valid() and listing:
-            watcher = request.user.watchlist.filter(listing=listing.id)
-            if watcher:
-                watcher.delete()
+            callStoredProcedure('removeWatcher', id, request.user.id)
 
-    return HttpResponseRedirect(reverse('listing', args=[listing.id]))
+    return HttpResponseRedirect(reverse('listing', args=[id]))
 
 
 @login_required
@@ -187,17 +182,13 @@ def placeBid(request, id):
 
 @login_required
 def close(request, id):
-    listing = Listing.objects.get(id=id)
-    if request.method == "POST" and listing and listing.active and listing.creator == request.user:
+    listing = callStoredProcedure('getListingById', id)[0]
+    if request.method == "POST" and listing and listing.get('active') and listing.get('creator_id') == request.user.id:
         form = EmptyForm(request.POST)
         if form.is_valid():
-            listing.active = False
+            callStoredProcedure('closeBid', id)
 
-            if listing.bids.count() > 0:
-                listing.winner = listing.bids.last().bidder
-            listing.save()
-
-    return HttpResponseRedirect(reverse('listing', args=[listing.id]))
+    return HttpResponseRedirect(reverse('listing', args=[id]))
 
 
 @login_required
@@ -217,12 +208,11 @@ def comment(request, id):
 
 @login_required
 def watchlist(request):
-    watchlist = request.user.watchlist.all()
-    listings = [temp.listing for temp in watchlist]
+    listings = callStoredProcedure('getWatchlist', request.user.id)
     category = request.GET.get('category')
 
     if category:
-        listings = [listing for listing in listings if listing.category == category]
+        listings = [listing for listing in listings if listing.get('category') == category]
 
     return render(request, 'auctions/index.html', {
         'title': 'watchlist',
