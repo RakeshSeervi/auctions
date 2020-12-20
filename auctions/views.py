@@ -1,15 +1,13 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.db import connection
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
-import datetime
 
-from .utils import callStoredProcedure
 from .forms import NewListing, EmptyForm, BidForm, CommentForm
 from .models import User, Listing, Watcher
+from .utils import callStoredProcedure, getDateTime
 
 
 def index(request):
@@ -91,9 +89,9 @@ def create(request):
         if listing.is_valid():
             listing = listing.save(commit=False)
             listing.creator = request.user
-            listing.timestamp =  datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            args = [listing.title , listing.description, listing.imageURL , listing.creator_id , listing.basePrice , listing.category ,  listing.timestamp , listing.active , ]
-            listing = callStoredProcedure("createListing" , *args)[0]
+            args = [listing.title, listing.description, listing.imageURL, listing.creator_id, listing.basePrice,
+                    listing.category, getDateTime(), listing.active, ]
+            listing = callStoredProcedure("createListing", *args)[0]
             return HttpResponseRedirect(reverse('listing', args=[listing['id']]))
     return render(request, 'auctions/new.html', {
         "form": listing 
@@ -161,32 +159,30 @@ def removeFromList(request, id):
 
 @login_required
 def placeBid(request, id):
-    listing = Listing.objects.get(id=id)
+    listing = callStoredProcedure('getListingById', id)[0]
     message = "Bid placed succesfully!"
 
     if request.method == 'POST':
-        if listing and listing.active:
+        if listing and listing.get('active'):
             form = BidForm(request.POST)
             if form.is_valid():
                 form = form.save(commit=False)
-                form.bidObject = listing
-                form.bidder = request.user
-                lastBid = listing.bids.last()
+                lastBid = callStoredProcedure('getLastBid', id)[0]
 
                 if lastBid:
-                    if form.bidValue > lastBid.bidValue:
-                        form.save()
+                    if form.bidValue > lastBid.get('bidValue'):
+                        callStoredProcedure('placeBid', id, form.bidValue, request.user.id, getDateTime())
                     else:
                         message = "Bid not placed. Bid value must be greater than the last bid value - " + str(
-                            lastBid.bidValue) + "."
+                            lastBid.get('bidValue')) + "."
                 else:
-                    if form.bidValue > listing.basePrice:
-                        form.save()
+                    if form.bidValue > listing.get('basePrice'):
+                        callStoredProcedure('placeBid', id, form.bidValue, request.user.id, getDateTime())
                     else:
                         message = "Bid not placed. Bid value must be greater than the base price - " + str(
-                            listing.basePrice) + "."
+                            listing.get('basePrice')) + "."
     print(message)
-    return HttpResponseRedirect(reverse('listing', args=[listing.id]))
+    return HttpResponseRedirect(reverse('listing', args=[listing.get('id')]))
 
 
 @login_required
