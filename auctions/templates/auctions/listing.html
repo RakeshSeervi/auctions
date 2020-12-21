@@ -101,7 +101,7 @@
             <div class="col-6">
                 <h3>Comments</h3>
                 <div id="comment" style="height:40vh; overflow-y:auto; box-shadow: 0 0 4px white; padding:8px; margin-bottom:16px; margin-top:16px;">
-                {% if comments.count %}
+                {% if comments|length %}
                     {% for comment in comments %}
                         <hr>
                         <b>{{ comment.author.username }}</b> <small>said {{ comment.timestamp|naturaltime }}</small>

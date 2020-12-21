@@ -109,14 +109,53 @@ name .
     end//
     delimiter ;
 
-## 9. To get watchlist
-
+## 9. To get watchlist by user Id
+ 
     delimiter //
     create procedure getWatchlist (in userId int)
     begin
-        select listing_id from auctions_watcher 
-            where user_id=userId;
+        select * from auctions_listing where active=True and id in  (select listing_id from auctions_watcher 
+            where user_id=userId);
     end//
+    delimiter ;
+
+## 10. To add a comments to a listing 
+
+   delimiter //
+    create procedure addComment (in listingId int,in comment varchar(200) , in userId int)
+    begin
+        insert into auctions_comment values (default, userId , comment , listingId , NOW());
+    end //
+    delimiter ;
+
+## 11. To get the comments of a listing 
+
+    delimiter //
+    create procedure getCommentsByListingId(in listingId int)
+    begin 
+        select * from auctions_comment 
+            where object_id=listingId;
+    end//
+    delimiter;
+
+## 12. To get listing by user and category
+
+    delimiter //
+    create procedure getListingByUser(in userId int , in cat varchar(20))
+    begin
+        if cat is NULL then
+        select * from auctions_listing
+            where creator_id=userId
+            order by timestamp desc; 
+
+        else
+        select * from auctions_listing
+            where creator_id=userId and category=cat
+            order by timestamp desc ;
+
+        end if;
+    end //
+
     delimiter ;
 
 # Trigger
