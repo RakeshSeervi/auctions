@@ -1,1 +1,7 @@
 .idea
+venv
+*.pyc
+*.env
+*__pycache__
+
+commerce/templates
