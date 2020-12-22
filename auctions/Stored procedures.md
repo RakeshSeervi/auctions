@@ -121,7 +121,7 @@ name .
 
 ## 10. To add a comments to a listing 
 
-   delimiter //
+    delimiter //
     create procedure addComment (in listingId int,in comment varchar(200) , in userId int)
     begin
         insert into auctions_comment values (default, userId , comment , listingId , NOW());
