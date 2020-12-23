@@ -23,3 +23,9 @@ admin.site.register(Listing, ListingAdmin)
 admin.site.register(User, UserAdmin)
 admin.site.register(Bid, BidAdmin)
 admin.site.register(Comment, CommentAdmin)
+
+
+# Customizing the admin page
+admin.site.site_header = "Auctions Admin"
+admin.site.site_title = "Auctions Admin Portal"
+admin.site.index_title = "Welcome to  Auctions Admin Page"
