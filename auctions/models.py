@@ -40,6 +40,7 @@ class Bid(models.Model):
 class Comment(models.Model):
     body = models.TextField(max_length=256, blank=False)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author_name = models.TextField(max_length=150, blank=False)
     object = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="comments")
     timestamp = models.DateTimeField(auto_now_add=True)
 

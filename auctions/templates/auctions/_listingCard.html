@@ -18,15 +18,6 @@
         <div>
             <b>Base price:</b> INR {{ listing.basePrice }}
         </div>
-        <div>
-            {% if listing.bids.count %}
-                {% with bid=listing.bids.last %}
-                    <b>Last bid:</b> INR {{ bid.bidValue }} <small class="text-muted">{{ bid.timestamp|naturalday }}</small>
-                {% endwith %}
-            {% else %}
-                No bids placed yet!
-            {% endif %}
-        </div>
     </div>
     <a class="card-footer" href="{% url 'listing' listing.id %}">View details</a>
 </div>

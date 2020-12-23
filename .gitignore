@@ -1,14 +1,6 @@
 .idea
 venv
-*.pyc
+*.pyc*
 *.env
-*__pycache__
 
-<<<<<<< HEAD
 commerce/templates
-commerce/.env
-auctions/__pycache__
-auctions/migrations
-=======
-commerce/templates
->>>>>>> dbms/master

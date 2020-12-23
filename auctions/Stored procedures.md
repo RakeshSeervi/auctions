@@ -67,11 +67,11 @@ name .
                 order by timestamp desc 
                     limit 1;
     end//
-    delimter ;
+    delimiter ;
 
 ## 5. To place bid
 
-    delimter //
+    delimiter //
     create procedure placeBid(in listingId int, in bid int, in bidderId int, in time datetime)    
     begin
         insert into auctions_bid (bidObject_id, bidValue, bidder_id, timestamp) 
@@ -81,7 +81,7 @@ name .
 
 ## 6. To close bid
 
-    delimter //
+    delimiter //
     create procedure closeBid(in listingId int)
     begin
         update auctions_listing 
@@ -106,26 +106,29 @@ name .
     begin
         delete from auctions_watcher 
             where listing_id=listingId and user_id=userId;
-    end//
+    end //
     delimiter ;
 
-<<<<<<< HEAD
 ## 9. To get watchlist by user Id
- 
+
     delimiter //
     create procedure getWatchlist (in userId int)
     begin
-        select * from auctions_listing where active=True and id in  (select listing_id from auctions_watcher 
-            where user_id=userId);
-    end//
+        select * from auctions_listing 
+            where active=True 
+                and id in (
+                    select listing_id from auctions_watcher 
+                        where user_id=userId
+                    );
+    end //
     delimiter ;
 
-## 10. To add a comments to a listing 
+## 10. To add a comment to a listing
 
     delimiter //
-    create procedure addComment (in listingId int,in comment varchar(200) , in userId int)
+    create procedure addComment (in listingId int, in comment varchar(200) , in userId int, in username varchar(150), in time datetime)
     begin
-        insert into auctions_comment values (default, userId , comment , listingId , NOW());
+        insert into auctions_comment values (default, userId , comment , listingId , time, username);
     end //
     delimiter ;
 
@@ -136,7 +139,7 @@ name .
     begin 
         select * from auctions_comment 
             where object_id=listingId;
-    end//
+    end //
     delimiter;
 
 ## 12. To get listing by user and category
@@ -145,28 +148,16 @@ name .
     create procedure getListingByUser(in userId int , in cat varchar(20))
     begin
         if cat is NULL then
-        select * from auctions_listing
+            select * from auctions_listing
             where creator_id=userId
             order by timestamp desc; 
 
         else
-        select * from auctions_listing
+            select * from auctions_listing
             where creator_id=userId and category=cat
             order by timestamp desc ;
-
         end if;
     end //
-
-=======
-## 9. To get watchlist
-
-    delimiter //
-    create procedure getWatchlist (in userId int)
-    begin
-        select listing_id from auctions_watcher 
-            where user_id=userId;
-    end//
->>>>>>> dbms/master
     delimiter ;
 
 # Trigger
@@ -187,8 +178,4 @@ name .
                             limit 1); 
         end if; 
     end//
-<<<<<<< HEAD
     delimiter ;
-=======
-    delimiter ;
->>>>>>> dbms/master

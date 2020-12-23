@@ -59,12 +59,11 @@
                     <b>Base price:</b> INR {{ listing.basePrice }}
                 </p>
 
-                {% if listing.bids.count %}
-                    {% with bid=listing.bids.last %}
-                        <p>
-                            <b>Last bid value:</b> INR {{ bid.bidValue }} <small>{{ bid.timestamp|naturaltime }}</small>
-                        </p>
-                    {% endwith %}
+                {% if lastBid %}
+                    <p>
+                        <b>Last bid value:</b> INR {{ lastBid.bidValue }}
+                        <small>{{ lastBid.timestamp|naturaltime }}</small>
+                    </p>
                 {% else %}
                     <p>No bids placed yet!</p>
                 {% endif %}
@@ -100,18 +99,19 @@
             </div>
             <div class="col-6">
                 <h3>Comments</h3>
-                <div id="comment" style="height:40vh; overflow-y:auto; box-shadow: 0 0 4px white; padding:8px; margin-bottom:16px; margin-top:16px;">
-                {% if comments|length %}
-                    {% for comment in comments %}
-                        <hr>
-                        <b>{{ comment.author.username }}</b> <small>said {{ comment.timestamp|naturaltime }}</small>
-                        <p>{{ comment.body }}</p>
-                    {% endfor %}
-                {% else %}
-                    <div style="display:flex; justify-content:center;">
-                        <span>No comments to show!</span>
-                    </div>
-                {% endif %}
+                <div id="comment"
+                     style="height:40vh; overflow-y:auto; box-shadow: 0 0 4px white; padding:8px; margin-bottom:16px; margin-top:16px;">
+                    {% if comments|length %}
+                        {% for comment in comments %}
+                            <hr>
+                            <b>{{ comment.author_name }}</b> <small>said {{ comment.timestamp|naturaltime }}</small>
+                            <p>{{ comment.body }}</p>
+                        {% endfor %}
+                    {% else %}
+                        <div style="display:flex; justify-content:center;">
+                            <span>No comments to show!</span>
+                        </div>
+                    {% endif %}
                 </div>
 
                 {% if listing.active and request.user.is_authenticated %}

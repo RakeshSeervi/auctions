@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 
 from .forms import NewListing, EmptyForm, BidForm, CommentForm
-from .models import User, Listing
+from .models import User
 from .utils import callStoredProcedure, getDateTime
 
 
@@ -94,7 +94,7 @@ def create(request):
             listing = callStoredProcedure("createListing", *args)[0]
             return HttpResponseRedirect(reverse('listing', args=[listing['id']]))
     return render(request, 'auctions/new.html', {
-        "form": listing 
+        "form": listing
     })
 
 
@@ -102,12 +102,12 @@ def listing(request, id):
     listing = callStoredProcedure('getListingById', id)[0]
     if listing:
         try:
-            lastBid = callStoredProcedure('getLastBid', id)[0] 
+            lastBid = callStoredProcedure('getLastBid', id)[0]
         except IndexError:
             lastBid = None
         bidForm = BidForm()
         commentForm = CommentForm()
-        comments = callStoredProcedure('getCommentsByListingId',id)
+        comments = callStoredProcedure('getCommentsByListingId', id)
 
         if lastBid:
             bidForm.fields['bidValue'].widget.attrs["min"] = lastBid['bidValue'] + 1
@@ -115,13 +115,14 @@ def listing(request, id):
         else:
             bidForm.fields['bidValue'].widget.attrs["min"] = listing['basePrice'] + 1
             bidForm.fields['bidValue'].widget.attrs["value"] = listing['basePrice'] + 1
-        
-        watchlist = callStoredProcedure('getWatchlist', request.user.id) if request.user.is_authenticated else []     
+
+        watchlist = callStoredProcedure('getWatchlist', request.user.id) if request.user.is_authenticated else []
 
         return render(request, 'auctions/listing.html', {
             "listing": listing,
             "bidForm": bidForm,
             'commentForm': commentForm,
+            'lastBid': lastBid,
             'comments': comments,
             'watchlist': watchlist
         })
@@ -148,11 +149,7 @@ def addToList(request, id):
 def removeFromList(request, id):
     if request.method == 'POST':
         form = EmptyForm(request.POST)
-<<<<<<< HEAD
         if form.is_valid():
-=======
-        if form.is_valid() and listing:
->>>>>>> dbms/master
             callStoredProcedure('removeWatcher', id, request.user.id)
 
     return HttpResponseRedirect(reverse('listing', args=[id]))
@@ -205,7 +202,7 @@ def comment(request, id):
         form = CommentForm(request.POST)
         if form.is_valid():
             comment = form.save(commit=False)
-            args = [id , comment.body ,listing['creator_id'] ]
+            args = [id, comment.body, request.user.id, request.user.username, getDateTime()]
             callStoredProcedure('addComment', *args)
 
     return HttpResponseRedirect(reverse('listing', args=[listing['id']]))
@@ -218,10 +215,6 @@ def watchlist(request):
 
     if category:
         listings = [listing for listing in listings if listing.get('category') == category]
-<<<<<<< HEAD
-=======
-
->>>>>>> dbms/master
     return render(request, 'auctions/index.html', {
         'title': 'watchlist',
         'heading': 'My watchlist',
@@ -235,11 +228,11 @@ def myListings(request, username):
         category = request.GET.get('category')
 
         if category:
-            args = [request.user.id , category]
-        else :
-            args = [request.user.id , None]
+            args = [request.user.id, category]
+        else:
+            args = [request.user.id, None]
 
-        listings = callStoredProcedure('getListingByUser' , *args)
+        listings = callStoredProcedure('getListingByUser', *args)
         return render(request, 'auctions/index.html', {
             'title': 'my listings',
             'heading': 'My Listings',
