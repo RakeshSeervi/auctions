@@ -109,6 +109,7 @@ name .
     end//
     delimiter ;
 
+<<<<<<< HEAD
 ## 9. To get watchlist by user Id
  
     delimiter //
@@ -156,6 +157,16 @@ name .
         end if;
     end //
 
+=======
+## 9. To get watchlist
+
+    delimiter //
+    create procedure getWatchlist (in userId int)
+    begin
+        select listing_id from auctions_watcher 
+            where user_id=userId;
+    end//
+>>>>>>> dbms/master
     delimiter ;
 
 # Trigger
@@ -176,4 +187,8 @@ name .
                             limit 1); 
         end if; 
     end//
+<<<<<<< HEAD
     delimiter ;
+=======
+    delimiter ;
+>>>>>>> dbms/master

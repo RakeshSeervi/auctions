@@ -4,7 +4,6 @@ from django.db import IntegrityError
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
-import datetime
 
 from .forms import NewListing, EmptyForm, BidForm, CommentForm
 from .models import User, Listing
@@ -149,7 +148,11 @@ def addToList(request, id):
 def removeFromList(request, id):
     if request.method == 'POST':
         form = EmptyForm(request.POST)
+<<<<<<< HEAD
         if form.is_valid():
+=======
+        if form.is_valid() and listing:
+>>>>>>> dbms/master
             callStoredProcedure('removeWatcher', id, request.user.id)
 
     return HttpResponseRedirect(reverse('listing', args=[id]))
@@ -215,6 +218,10 @@ def watchlist(request):
 
     if category:
         listings = [listing for listing in listings if listing.get('category') == category]
+<<<<<<< HEAD
+=======
+
+>>>>>>> dbms/master
     return render(request, 'auctions/index.html', {
         'title': 'watchlist',
         'heading': 'My watchlist',
